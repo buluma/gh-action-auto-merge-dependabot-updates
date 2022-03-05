@@ -1,0 +1,16 @@
+name: Test Action
+
+on:
+  - pull_request_target
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: ./
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          allowed-actors: buluma, dependabot[bot]
+          package-block-list: '@actions/core, @actions/github'
