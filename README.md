@@ -41,7 +41,3 @@ jobs:
         with:
           allowed-actors: dependabot-preview[bot], dependabot[bot]
 ```
-
-## Credits
-
-Thanks to [https://github.com/tjenkinson/gh-action-auto-merge-dependency-updates](https://github.com/tjenkinson/gh-action-auto-merge-dependency-updates)
