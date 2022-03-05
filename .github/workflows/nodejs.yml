@@ -1,3 +1,4 @@
+---
 name: Node CI
 
 on: [push, pull_request]

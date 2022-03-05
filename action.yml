@@ -1,3 +1,4 @@
+---
 name: 'Auto Merge Dependabot Updates'
 description: 'Automatically merge a PR that only contains dependabot updates, based on some rules.'
 author: 'Michael Buluma'
