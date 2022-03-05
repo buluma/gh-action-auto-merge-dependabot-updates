@@ -1,6 +1,6 @@
-name: 'Auto Merge Dependency Updates'
-description: 'Automatically merge a PR that only contains dependency updates, based on some rules.'
-author: 'Tom Jenkinson'
+name: 'Auto Merge Dependabot Updates'
+description: 'Automatically merge a PR that only contains dependabot updates, based on some rules.'
+author: 'Michael Buluma'
 inputs:
   repo-token:
     description: 'GitHub API token'
@@ -34,4 +34,4 @@ runs:
   main: 'dist/index.js'
 branding:
   icon: 'git-merge'
-  color: 'blue'
+  color: 'black'

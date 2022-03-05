@@ -37,7 +37,11 @@ jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-      - uses: tjenkinson/gh-action-auto-merge-dependency-updates@v1
+      - uses: buluma/gh-action-auto-merge-dependency-updates@v1
         with:
           allowed-actors: dependabot-preview[bot], dependabot[bot]
 ```
+
+## Credits
+
+Thanks to [https://github.com/tjenkinson/gh-action-auto-merge-dependency-updates](https://github.com/tjenkinson/gh-action-auto-merge-dependency-updates)

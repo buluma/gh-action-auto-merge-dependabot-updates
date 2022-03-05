@@ -1,8 +1,8 @@
 {
-  "name": "gh-action-auto-merge-dependency-updates",
-  "version": "0.0.0",
+  "name": "gh-action-auto-merge-dependabot-updates",
+  "version": "0.0.1",
   "private": true,
-  "description": "A GitHub action that will automatically merge a PR that only contains dependency updates, based on some rules.",
+  "description": "A GitHub action that will automatically merge a PR that only contains dependabot updates, based on some rules.",
   "scripts": {
     "build": "rm -rf dist && rollup --config rollup.config.js",
     "watch": "rollup --config rollup.config.js --watch",
@@ -15,14 +15,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tjenkinson/gh-action-auto-merge-dependency-updates.git"
+    "url": "git+https://github.com/buluma/gh-action-auto-merge-dependabot-updates.git"
   },
-  "author": "Tom Jenkinson <tom@tjenkinson.me>",
+  "author": "Michael Buluma <me@buluma.me.ke>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/tjenkinson/gh-action-auto-merge-dependency-updates/issues"
+    "url": "https://github.com/buluma/gh-action-auto-merge-dependabot-updates/issues"
   },
-  "homepage": "https://github.com/tjenkinson/gh-action-auto-merge-dependency-updates#readme",
+  "homepage": "https://github.com/buluma/gh-action-auto-merge-dependabot-updates#readme",
   "devDependencies": {
     "@actions/core": "1.4.0",
     "@actions/github": "4.0.0",
