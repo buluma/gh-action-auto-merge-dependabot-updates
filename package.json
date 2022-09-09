@@ -29,7 +29,7 @@
     "@octokit/plugin-throttling": "^4.2.0",
     "@octokit/webhooks": "10.1.5",
     "@rollup/plugin-commonjs": "^22.0.0",
-    "@rollup/plugin-node-resolve": "^13.0.0",
+    "@rollup/plugin-node-resolve": "^14.0.1",
     "@types/jest": "^27.4.1",
     "@types/jest-when": "^3.5.0",
     "@types/semver": "^7.3.3",
