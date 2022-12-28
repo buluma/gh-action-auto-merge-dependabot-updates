@@ -25,7 +25,7 @@
   "homepage": "https://github.com/buluma/gh-action-auto-merge-dependabot-updates#readme",
   "devDependencies": {
     "@actions/core": "1.9.1",
-    "@actions/github": "5.0.3",
+    "@actions/github": "5.1.1",
     "@octokit/plugin-throttling": "^4.2.0",
     "@octokit/webhooks": "10.4.0",
     "@rollup/plugin-commonjs": "^24.0.0",
