@@ -26,7 +26,8 @@
   "devDependencies": {
     "@actions/core": "1.9.1",
     "@actions/github": "5.1.1",
-    "@octokit/plugin-throttling": "^4.2.0",
+    "@octokit/plugin-throttling": "^5.0.1",
+    "@octokit/webhooks": "10.7.0",
     "@octokit/webhooks": "11.0.0",
     "@rollup/plugin-commonjs": "^24.0.0",
     "@rollup/plugin-node-resolve": "^15.0.2",
