@@ -4,6 +4,8 @@ on: pull_request
 permissions:
   pull-requests: write
 
+workflow_dispatch:
+
 jobs:
   dependabot:
     runs-on: ubuntu-latest
