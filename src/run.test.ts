@@ -76,13 +76,14 @@ const versionChanges: VersionChange[] = [
   {
     before: { dev: { mod1: '0.0.1-alpha' } },
     after: { dev: { mod1: '0.0.1' } },
-    minRequired: { dev: 'impossible', prod: 'none' },
+    minRequired: { dev: 'patch', prod: 'none' },
   },
-  {
-    before: { dev: { mod1: '0.0.1-alpha' } },
-    after: { dev: { mod1: '0.0.2' } },
-    minRequired: { dev: 'impossible', prod: 'none' },
-  },
+  // TODO needs bug fix in https://github.com/npm/node-semver/pull/546
+  // {
+  //   before: { dev: { mod1: '0.0.1-alpha' } },
+  //   after: { dev: { mod1: '0.0.2' } },
+  //   minRequired: { dev: 'patch', prod: 'none' },
+  // },
   {
     before: { dev: { mod1: '!0.0.1' } },
     after: { dev: { mod1: '0.0.2' } },
@@ -142,7 +143,7 @@ possibleBumpTypes.forEach((prodBumpType) => {
 
 describe('run', () => {
   beforeEach(() => {
-    jest.useFakeTimers('modern').setSystemTime(0);
+    jest.useFakeTimers('modern' as any).setSystemTime(0);
     (github as any).context = {};
   });
 
@@ -355,15 +356,17 @@ describe('run', () => {
               .mockImplementation(validMergeCallMock);
 
             const octokitMock = {
-              repos: {
-                getContent: reposGetContentMock,
-                compareCommits: reposCompareCommitsMock,
-              },
-              pulls: {
-                get: pullsGetMock,
-                createReview: createReviewMock,
-                submitReview: submitReviewMock,
-                merge: mergeMock,
+              rest: {
+                repos: {
+                  getContent: reposGetContentMock,
+                  compareCommits: reposCompareCommitsMock,
+                },
+                pulls: {
+                  get: pullsGetMock,
+                  createReview: createReviewMock,
+                  submitReview: submitReviewMock,
+                  merge: mergeMock,
+                },
               },
             };
 
@@ -420,6 +423,14 @@ describe('run', () => {
             await expect(run()).rejects.toHaveProperty(
               'message',
               'Unexpected repo content response'
+            );
+          });
+
+          it('errors if files missing', async () => {
+            delete mockCompareCommits.data.files;
+            await expect(run()).rejects.toHaveProperty(
+              'message',
+              'Unexpected error. `files` missing in commit comparison'
             );
           });
 
