@@ -13,4 +13,4 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           allowed-actors: buluma, dependabot[bot]
-          package-block-list: '@actions/core, @actions/github'
+          package-block-list: '@actions/core,@actions/github'
