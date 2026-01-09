@@ -258,13 +258,20 @@ export async function run(): Promise<Result> {
   if (!comparison.data.files) {
     throw new Error('Unexpected error. `files` missing in commit comparison');
   }
-  const onlyPackageJsonChanged = comparison.data.files.every(
-    ({ filename, status }: { filename: string; status: string }) =>
-      ['package.json', 'package-lock.json', 'yarn.lock'].includes(filename) &&
-      status === 'modified'
-  );
-  if (!onlyPackageJsonChanged) {
-    core.error('More changed than the package.json and lockfile');
+  const allowedFiles = ['package.json', 'package-lock.json', 'yarn.lock'];
+  const forbiddenFiles = comparison.data.files
+    .filter(
+      (file: { filename: string; status: string }) =>
+        !allowedFiles.includes(file.filename) || file.status !== 'modified'
+    )
+    .map((file: { filename: string; status: string }) => `${file.filename} (${file.status})`);
+
+  if (forbiddenFiles.length > 0) {
+    core.error(
+      `More changed than the package.json and lockfile. Forbidden changes: ${forbiddenFiles.join(
+        ', '
+      )}`
+    );
     return Result.FileNotAllowed;
   }
 
