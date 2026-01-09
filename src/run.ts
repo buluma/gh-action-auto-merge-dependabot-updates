@@ -75,15 +75,19 @@ export async function run(): Promise<Result> {
 
   const packageBlockList = (core.getInput('package-block-list') || '')
     .split(',')
-    .map((a) => a.trim());
+    .map((a) => a.trim())
+    .filter(Boolean);
 
   const packageAllowListRaw = core.getInput('package-allow-list');
   const packageAllowList = packageAllowListRaw
-    ? packageAllowListRaw.split(',').map((a) => a.trim())
+    ? packageAllowListRaw
+        .split(',')
+        .map((a) => a.trim())
+        .filter(Boolean)
     : null;
 
   if (!allowedActors.includes(context.actor)) {
-    core.error(`Actor not allowed: ${context.actor}`);
+    core.error(`Actor not allowed: ${context.actor}. Allowed: ${allowedActors.join(', ')}`);
     return Result.ActorNotAllowed;
   }
 
@@ -94,7 +98,7 @@ export async function run(): Promise<Result> {
 
   const pr = payload.pull_request;
 
-  const Octokit = GitHub.plugin(throttling);
+  const Octokit = GitHub.plugin(throttling as any);
   const octokit = new Octokit(
     getOctokitOptions(token, {
       throttle: {
@@ -255,7 +259,7 @@ export async function run(): Promise<Result> {
     throw new Error('Unexpected error. `files` missing in commit comparison');
   }
   const onlyPackageJsonChanged = comparison.data.files.every(
-    ({ filename, status }) =>
+    ({ filename, status }: { filename: string; status: string }) =>
       ['package.json', 'package-lock.json', 'yarn.lock'].includes(filename) &&
       status === 'modified'
   );
@@ -292,22 +296,33 @@ export async function run(): Promise<Result> {
   const allowedChange = Object.keys(diff.updated).every((prop) => {
     const allowedBumpTypes = allowedUpdateTypes[prop] || [];
     const changedDependencies = diff.updated[prop];
+    core.info(`Checking property: ${prop}. Allowed bump types: ${allowedBumpTypes.join(', ')}`);
     return Object.keys(changedDependencies).every((dependency) => {
+      const newVersion = packageJsonPr[prop][dependency];
+      const oldVersion = packageJsonBase[prop][dependency];
+      core.info(`Checking dependency: ${dependency} (${oldVersion} -> ${newVersion})`);
+
       if (typeof changedDependencies[dependency] !== 'string') {
+        core.info(`  Skipping: ${dependency} value is not a string`);
         return false;
       }
       if (packageAllowList && !packageAllowList.includes(dependency)) {
+        core.info(`  Skipping: ${dependency} is not in the allow list`);
         return false;
       }
       if (packageBlockList.includes(dependency)) {
+        core.info(`  Skipping: ${dependency} is in the block list`);
         return false;
       }
-      const oldVersion = packageJsonBase[prop][dependency];
-      const newVersion = packageJsonPr[prop][dependency];
       if (typeof oldVersion !== 'string' || typeof newVersion !== 'string') {
+        core.info(`  Skipping: ${dependency} old or new version is not a string`);
         return false;
       }
-      return validVersionChange(oldVersion, newVersion, allowedBumpTypes);
+      const isValid = validVersionChange(oldVersion, newVersion, allowedBumpTypes);
+      if (!isValid) {
+        core.info(`  Skipping: ${dependency} version change is not allowed`);
+      }
+      return isValid;
     });
   });
 

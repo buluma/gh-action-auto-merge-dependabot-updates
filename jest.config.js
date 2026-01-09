@@ -3,6 +3,9 @@ module.exports = {
   testEnvironment: 'node',
   rootDir: 'src',
   restoreMocks: true,
+  transformIgnorePatterns: [
+    'node_modules/(?!(@octokit|bottleneck)/)'
+  ],
   coverageThreshold: {
     global: {
       branches: 100,
