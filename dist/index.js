@@ -36575,6 +36575,15 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __spreadArray = (undefined && undefined.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 
 
 
@@ -36597,7 +36606,7 @@ var retryDelays = [1, 1, 1, 2, 3, 4, 5, 10, 20, 40, 60].map(function (a) { retur
 var timeout = 6 * 60 * 60 * 1000;
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var startTime, context, payload, token, allowedActors, allowedUpdateTypes, approve, packageBlockList, packageAllowListRaw, packageAllowList, merge, mergeMethod, pr, Octokit, octokit, readPackageJson, mergeWhenPossible, getPR, compareCommits, approvePR, validVersionChange, comparison, allowedFiles, forbiddenFiles, packageJsonBase, packageJsonPr, diff, allowedPropsChanges, allowedChange, result;
+        var startTime, context, payload, token, allowedActors, allowedUpdateTypes, approve, packageBlockList, packageAllowListRaw, packageAllowList, merge, mergeMethod, extraAllowedFiles, pr, Octokit, octokit, readPackageJson, mergeWhenPossible, getPR, compareCommits, approvePR, validVersionChange, comparison, allowedFiles, forbiddenFiles, packageJsonBase, packageJsonPr, diff, allowedPropsChanges, allowedChange, result;
         var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -36653,6 +36662,10 @@ function run() {
                     }
                     merge = core.getInput('merge') === 'true';
                     mergeMethod = toMergeMethod(core.getInput('merge-method', { required: true }));
+                    extraAllowedFiles = (core.getInput('extra-allowed-files') || '')
+                        .split(',')
+                        .map(function (a) { return a.trim(); })
+                        .filter(Boolean);
                     pr = payload.pull_request;
                     Octokit = utils.GitHub.plugin(throttling);
                     octokit = new Octokit((0,utils.getOctokitOptions)(token, {
@@ -36848,7 +36861,11 @@ function run() {
                     if (!comparison.data.files) {
                         throw new Error('Unexpected error. `files` missing in commit comparison');
                     }
-                    allowedFiles = ['package.json', 'package-lock.json', 'yarn.lock'];
+                    allowedFiles = __spreadArray([
+                        'package.json',
+                        'package-lock.json',
+                        'yarn.lock'
+                    ], extraAllowedFiles, true);
                     forbiddenFiles = comparison.data.files
                         .filter(function (file) {
                         return !allowedFiles.includes(file.filename) || file.status !== 'modified';

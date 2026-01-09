@@ -96,6 +96,11 @@ export async function run(): Promise<Result> {
     core.getInput('merge-method', { required: true })
   );
 
+  const extraAllowedFiles = (core.getInput('extra-allowed-files') || '')
+    .split(',')
+    .map((a) => a.trim())
+    .filter(Boolean);
+
   const pr = payload.pull_request;
 
   const Octokit = GitHub.plugin(throttling as any);
@@ -258,7 +263,12 @@ export async function run(): Promise<Result> {
   if (!comparison.data.files) {
     throw new Error('Unexpected error. `files` missing in commit comparison');
   }
-  const allowedFiles = ['package.json', 'package-lock.json', 'yarn.lock'];
+  const allowedFiles = [
+    'package.json',
+    'package-lock.json',
+    'yarn.lock',
+    ...extraAllowedFiles,
+  ];
   const forbiddenFiles = comparison.data.files
     .filter(
       (file: { filename: string; status: string }) =>
