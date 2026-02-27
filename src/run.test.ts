@@ -375,7 +375,7 @@ describe('run', () => {
               .expectCalledWith('token', {
                 throttle: expect.objectContaining({
                   onRateLimit: expect.any(Function),
-                  onAbuseLimit: expect.any(Function),
+                  onSecondaryRateLimit: expect.any(Function),
                 }),
               })
               .mockReturnValue(getOctokitOptionsReturn);

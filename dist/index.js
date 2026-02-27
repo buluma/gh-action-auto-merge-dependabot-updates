@@ -36674,8 +36674,8 @@ function run() {
                                 core.warning("Hit rate limit. Retrying in ".concat(retryAfter, " seconds"));
                                 return true;
                             },
-                            onAbuseLimit: /* istanbul ignore next */ function (retryAfter) {
-                                core.warning("Hit abuse limit. Retrying in ".concat(retryAfter, " seconds"));
+                            onSecondaryRateLimit: /* istanbul ignore next */ function (retryAfter) {
+                                core.warning("Hit secondary rate limit. Retrying in ".concat(retryAfter, " seconds"));
                                 return true;
                             },
                         },
