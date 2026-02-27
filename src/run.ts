@@ -100,6 +100,8 @@ export async function run(): Promise<Result> {
     .split(',')
     .map((a) => a.trim())
     .filter(Boolean);
+  const allowGithubActionsWorkflowUpdates =
+    core.getInput('allow-github-actions-workflow-updates') === 'true';
 
   const pr = payload.pull_request;
 
@@ -269,10 +271,17 @@ export async function run(): Promise<Result> {
     'yarn.lock',
     ...extraAllowedFiles,
   ];
+  const isAllowedWorkflowFile = (filename: string) =>
+    /^\.github\/workflows\/[^/]+\.ya?ml$/i.test(filename);
   const forbiddenFiles = comparison.data.files
     .filter(
       (file: { filename: string; status: string }) =>
-        !allowedFiles.includes(file.filename) || file.status !== 'modified'
+        (!allowedFiles.includes(file.filename) &&
+          !(
+            allowGithubActionsWorkflowUpdates &&
+            isAllowedWorkflowFile(file.filename)
+          )) ||
+        file.status !== 'modified'
     )
     .map((file: { filename: string; status: string }) => `${file.filename} (${file.status})`);
 

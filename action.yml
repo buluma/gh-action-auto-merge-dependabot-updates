@@ -30,11 +30,15 @@ inputs:
   extra-allowed-files:
     required: false
     description: 'Comma separated list of additional files that are allowed to be modified in the PR (e.g., "src/__mocks__/@actions/core.ts").'
+  allow-github-actions-workflow-updates:
+    required: false
+    description: 'Allow modified workflow files under .github/workflows/*.yml and .yaml.'
+    default: 'false'
 outputs:
   success:
     description: '"true" if the commit meets the criteria'
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'
 branding:
   icon: 'git-merge'
