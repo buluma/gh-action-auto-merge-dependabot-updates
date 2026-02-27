@@ -164,6 +164,7 @@ describe('run', () => {
         let mockMergeMethod: string;
         let mockPackageBlockList: string;
         let mockPackageAllowList: string | undefined;
+        let mockExtraAllowedFiles: string;
         let mockAllowGithubActionsWorkflowUpdates: string;
 
         beforeEach(() => {
@@ -175,6 +176,7 @@ describe('run', () => {
           mockMergeMethod = 'merge';
           mockPackageBlockList = '';
           mockPackageAllowList = undefined;
+          mockExtraAllowedFiles = '';
           mockAllowGithubActionsWorkflowUpdates = '';
 
           (core.setOutput as any).mockReset();
@@ -205,6 +207,9 @@ describe('run', () => {
           getInputMock
             .calledWith('merge-method', { required: true })
             .mockImplementation(() => mockMergeMethod);
+          getInputMock
+            .calledWith('extra-allowed-files')
+            .mockImplementation(() => mockExtraAllowedFiles);
           getInputMock
             .calledWith('allow-github-actions-workflow-updates')
             .mockImplementation(() => mockAllowGithubActionsWorkflowUpdates);

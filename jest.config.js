@@ -3,6 +3,10 @@ module.exports = {
   testEnvironment: 'node',
   rootDir: 'src',
   restoreMocks: true,
+  moduleNameMapper: {
+    '^@octokit/plugin-throttling$':
+      '<rootDir>/__mocks__/@octokit/plugin-throttling.ts',
+  },
   transformIgnorePatterns: [
     'node_modules/(?!(@octokit|bottleneck)/)'
   ],
