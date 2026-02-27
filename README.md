@@ -39,7 +39,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Auto Merge Dependabot Updates
-        uses: buluma/gh-action-auto-merge-dependabot-updates@1.0.4
+        uses: buluma/gh-action-auto-merge-dependabot-updates@v1
         with:
           allowed-actors: dependabot-preview[bot], dependabot[bot]
+```
+
+If you prefer pinning to an exact release tag, use:
+
+```yaml
+uses: buluma/gh-action-auto-merge-dependabot-updates@1.0.9
 ```
