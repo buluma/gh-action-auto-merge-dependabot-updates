@@ -1,4 +1,4 @@
-# gh-action-auto-merge-dependabot-updates
+# Auto Merge Dependency Updates
 
 A GitHub action that will automatically approve and merge a PR that only contains dependency updates, based on some rules.
 
