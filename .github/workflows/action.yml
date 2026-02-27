@@ -1,8 +1,18 @@
 name: Test Action
 
 on:
-  pull_request_target:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
 
 jobs:
   run:
