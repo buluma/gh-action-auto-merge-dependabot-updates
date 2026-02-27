@@ -164,6 +164,8 @@ describe('run', () => {
         let mockMergeMethod: string;
         let mockPackageBlockList: string;
         let mockPackageAllowList: string | undefined;
+        let mockExtraAllowedFiles: string;
+        let mockAllowGithubActionsWorkflowUpdates: string;
 
         beforeEach(() => {
           github.context.eventName = name;
@@ -174,6 +176,8 @@ describe('run', () => {
           mockMergeMethod = 'merge';
           mockPackageBlockList = '';
           mockPackageAllowList = undefined;
+          mockExtraAllowedFiles = '';
+          mockAllowGithubActionsWorkflowUpdates = '';
 
           (core.setOutput as any).mockReset();
           const getInputMock = when(core.getInput as any).mockImplementation(
@@ -203,6 +207,12 @@ describe('run', () => {
           getInputMock
             .calledWith('merge-method', { required: true })
             .mockImplementation(() => mockMergeMethod);
+          getInputMock
+            .calledWith('extra-allowed-files')
+            .mockImplementation(() => mockExtraAllowedFiles);
+          getInputMock
+            .calledWith('allow-github-actions-workflow-updates')
+            .mockImplementation(() => mockAllowGithubActionsWorkflowUpdates);
         });
 
         it('stops if the actor is not in the allow list', async () => {
@@ -452,6 +462,25 @@ describe('run', () => {
               { filename: 'package.json', status: 'something' },
             ];
             expect(await run()).toBe(Result.FileNotAllowed);
+          });
+
+          it('stops if a workflow file is changed and workflow updates are disabled', async () => {
+            mockAllowedUpdateTypes = 'devDependencies: patch';
+            mockCompareCommits.data.files = [
+              { filename: '.github/workflows/ci.yml', status: 'modified' },
+            ];
+            expect(await run()).toBe(Result.FileNotAllowed);
+          });
+
+          it('allows modified workflow files when workflow updates are enabled', async () => {
+            mockAllowedUpdateTypes = 'devDependencies: patch';
+            mockAllowGithubActionsWorkflowUpdates = 'true';
+            mockCompareCommits.data.files = [
+              { filename: '.github/workflows/ci.yml', status: 'modified' },
+              { filename: '.github/workflows/release.yaml', status: 'modified' },
+            ];
+            expect(await run()).toBe(Result.PRMergeSkipped);
+            expect(core.setOutput).toHaveBeenCalledWith('success', 'true');
           });
 
           it('stops if the diff of the package.json contains additions', async () => {

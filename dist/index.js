@@ -36606,7 +36606,7 @@ var retryDelays = [1, 1, 1, 2, 3, 4, 5, 10, 20, 40, 60].map(function (a) { retur
 var timeout = 6 * 60 * 60 * 1000;
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var startTime, context, payload, token, allowedActors, allowedUpdateTypes, approve, packageBlockList, packageAllowListRaw, packageAllowList, merge, mergeMethod, extraAllowedFiles, pr, Octokit, octokit, readPackageJson, mergeWhenPossible, getPR, compareCommits, approvePR, validVersionChange, comparison, allowedFiles, forbiddenFiles, packageJsonBase, packageJsonPr, diff, allowedPropsChanges, allowedChange, result;
+        var startTime, context, payload, token, allowedActors, allowedUpdateTypes, approve, packageBlockList, packageAllowListRaw, packageAllowList, merge, mergeMethod, extraAllowedFiles, allowGithubActionsWorkflowUpdates, pr, Octokit, octokit, readPackageJson, mergeWhenPossible, getPR, compareCommits, approvePR, validVersionChange, comparison, allowedFiles, isAllowedWorkflowFile, forbiddenFiles, packageJsonBase, packageJsonPr, diff, allowedPropsChanges, allowedChange, result;
         var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -36666,6 +36666,7 @@ function run() {
                         .split(',')
                         .map(function (a) { return a.trim(); })
                         .filter(Boolean);
+                    allowGithubActionsWorkflowUpdates = core.getInput('allow-github-actions-workflow-updates') === 'true';
                     pr = payload.pull_request;
                     Octokit = utils.GitHub.plugin(throttling);
                     octokit = new Octokit((0,utils.getOctokitOptions)(token, {
@@ -36866,9 +36867,15 @@ function run() {
                         'package-lock.json',
                         'yarn.lock'
                     ], extraAllowedFiles, true);
+                    isAllowedWorkflowFile = function (filename) {
+                        return /^\.github\/workflows\/[^/]+\.ya?ml$/i.test(filename);
+                    };
                     forbiddenFiles = comparison.data.files
                         .filter(function (file) {
-                        return !allowedFiles.includes(file.filename) || file.status !== 'modified';
+                        return (!allowedFiles.includes(file.filename) &&
+                            !(allowGithubActionsWorkflowUpdates &&
+                                isAllowedWorkflowFile(file.filename))) ||
+                            file.status !== 'modified';
                     })
                         .map(function (file) { return "".concat(file.filename, " (").concat(file.status, ")"); });
                     if (forbiddenFiles.length > 0) {
