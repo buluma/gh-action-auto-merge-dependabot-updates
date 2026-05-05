@@ -19,6 +19,10 @@ It currently supports npm and yarn.
 - `merge` (optional): Merge the PR if it qualifies. _Default: `true`_
 - `merge-method` (optional): Merge method. Supported: `merge`, `squash`, `rebase` _Default: `merge`_
 - `allow-github-actions-workflow-updates` (optional): Allow modified workflow files under `.github/workflows/*.yml` and `.github/workflows/*.yaml`. _Default: `false`_
+- `allowed-workflow-files` (optional): Comma separated list of workflow files that are allowed when `allow-github-actions-workflow-updates` is enabled. Omit to allow all workflow files.
+- `allow-prerelease-updates` (optional): Allow dependency updates where either old or new version is a prerelease (for example `1.2.3-beta.1`). _Default: `false`_
+
+Both the workflow actor (`github.actor`) and the pull request author must be in `allowed-actors`.
 
 You should configure this action to run on the `pull_request_target` event. If you use `pull_request` you might need to provide a custom `repo-token` which has permission to merge. [The default token for dependabot PRs only has read-only access](https://github.blog/changelog/2021-02-19-github-actions-workflows-triggered-by-dependabot-prs-will-run-with-read-only-permissions/).
 
@@ -47,5 +51,42 @@ jobs:
 If you prefer pinning to an exact release tag, use:
 
 ```yaml
-uses: buluma/gh-action-auto-merge-dependabot-updates@1.0.9
+uses: buluma/gh-action-auto-merge-dependabot-updates@1.1.0
 ```
+
+## Hardened Example
+
+```yaml
+name: Auto Merge Dependency Updates
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto Merge Dependabot Updates
+        uses: buluma/gh-action-auto-merge-dependabot-updates@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          allowed-actors: dependabot[bot], dependabot-preview[bot]
+          allowed-update-types: devDependencies:minor, devDependencies:patch, dependencies:patch
+          package-allow-list: '@actions/core,@actions/github,@types/node'
+          package-block-list: typescript
+          allow-prerelease-updates: 'false'
+          allow-github-actions-workflow-updates: 'true'
+          allowed-workflow-files: .github/workflows/dependabot-auto-merge.yml
+          merge: 'true'
+          merge-method: squash
+```
+
+Recommended branch protection for this job:
+- Require status checks to pass before merging.
+- Include your test/lint workflow checks as required checks.
+- Limit who can push directly to the default branch.

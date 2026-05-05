@@ -34,6 +34,13 @@ inputs:
     required: false
     description: 'Allow modified workflow files under .github/workflows/*.yml and .yaml.'
     default: 'false'
+  allowed-workflow-files:
+    required: false
+    description: 'Comma separated list of workflow files allowed to change when allow-github-actions-workflow-updates is true (e.g., ".github/workflows/ci.yml"). Omit to allow any workflow file.'
+  allow-prerelease-updates:
+    required: false
+    description: 'Allow dependency updates where either old or new version is a prerelease (contains a hyphen suffix).'
+    default: 'false'
 outputs:
   success:
     description: '"true" if the commit meets the criteria'

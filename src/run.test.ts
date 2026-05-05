@@ -76,7 +76,7 @@ const versionChanges: VersionChange[] = [
   {
     before: { dev: { mod1: '0.0.1-alpha' } },
     after: { dev: { mod1: '0.0.1' } },
-    minRequired: { dev: 'patch', prod: 'none' },
+    minRequired: { dev: 'impossible', prod: 'none' },
   },
   // TODO needs bug fix in https://github.com/npm/node-semver/pull/546
   // {
@@ -166,6 +166,8 @@ describe('run', () => {
         let mockPackageAllowList: string | undefined;
         let mockExtraAllowedFiles: string;
         let mockAllowGithubActionsWorkflowUpdates: string;
+        let mockAllowedWorkflowFiles: string;
+        let mockAllowPrereleaseUpdates: string;
 
         beforeEach(() => {
           github.context.eventName = name;
@@ -178,6 +180,8 @@ describe('run', () => {
           mockPackageAllowList = undefined;
           mockExtraAllowedFiles = '';
           mockAllowGithubActionsWorkflowUpdates = '';
+          mockAllowedWorkflowFiles = '';
+          mockAllowPrereleaseUpdates = '';
 
           (core.setOutput as any).mockReset();
           const getInputMock = when(core.getInput as any).mockImplementation(
@@ -213,6 +217,12 @@ describe('run', () => {
           getInputMock
             .calledWith('allow-github-actions-workflow-updates')
             .mockImplementation(() => mockAllowGithubActionsWorkflowUpdates);
+          getInputMock
+            .calledWith('allowed-workflow-files')
+            .mockImplementation(() => mockAllowedWorkflowFiles);
+          getInputMock
+            .calledWith('allow-prerelease-updates')
+            .mockImplementation(() => mockAllowPrereleaseUpdates);
         });
 
         it('stops if the actor is not in the allow list', async () => {
@@ -244,6 +254,9 @@ describe('run', () => {
             (github.context as any).payload = {
               pull_request: {
                 number: 1,
+                user: {
+                  login: 'actor2',
+                },
                 base: {
                   sha: 'baseSha',
                 },
@@ -481,6 +494,62 @@ describe('run', () => {
             ];
             expect(await run()).toBe(Result.PRMergeSkipped);
             expect(core.setOutput).toHaveBeenCalledWith('success', 'true');
+          });
+
+          it('stops if workflow updates are enabled but workflow is not allow-listed', async () => {
+            mockAllowedUpdateTypes = 'devDependencies: patch';
+            mockAllowGithubActionsWorkflowUpdates = 'true';
+            mockAllowedWorkflowFiles = '.github/workflows/ci.yml';
+            mockCompareCommits.data.files = [
+              { filename: '.github/workflows/release.yaml', status: 'modified' },
+            ];
+            expect(await run()).toBe(Result.FileNotAllowed);
+          });
+
+          it('allows workflow updates when workflow file is explicitly allow-listed', async () => {
+            mockAllowedUpdateTypes = 'devDependencies: patch';
+            mockAllowGithubActionsWorkflowUpdates = 'true';
+            mockAllowedWorkflowFiles =
+              '.github/workflows/ci.yml, .github/workflows/release.yaml';
+            mockCompareCommits.data.files = [
+              { filename: '.github/workflows/release.yaml', status: 'modified' },
+            ];
+            expect(await run()).toBe(Result.PRMergeSkipped);
+            expect(core.setOutput).toHaveBeenCalledWith('success', 'true');
+          });
+
+          it('stops prerelease updates by default', async () => {
+            mockAllowedUpdateTypes = 'devDependencies: patch';
+            mockPackageJsonBase.devDependencies = {
+              mod1: '1.2.3-alpha.1',
+            };
+            mockPackageJsonPr.devDependencies = {
+              mod1: '1.2.3',
+            };
+            expect(await run()).toBe(Result.VersionChangeNotAllowed);
+          });
+
+          it('allows prerelease updates when enabled', async () => {
+            mockAllowedUpdateTypes = 'devDependencies: patch';
+            mockAllowPrereleaseUpdates = 'true';
+            mockPackageJsonBase.devDependencies = {
+              mod1: '1.2.3-alpha.1',
+            };
+            mockPackageJsonPr.devDependencies = {
+              mod1: '1.2.3',
+            };
+            expect(await run()).toBe(Result.PRMergeSkipped);
+            expect(core.setOutput).toHaveBeenCalledWith('success', 'true');
+          });
+
+          it('stops if the PR author is not in the allow list', async () => {
+            (github.context.payload.pull_request as any).user.login = 'unknown[bot]';
+            expect(await run()).toBe(Result.ActorNotAllowed);
+          });
+
+          it('stops if the PR author is missing', async () => {
+            delete (github.context.payload.pull_request as any).user;
+            expect(await run()).toBe(Result.ActorNotAllowed);
           });
 
           it('stops if the diff of the package.json contains additions', async () => {

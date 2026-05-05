@@ -1,6 +1,6 @@
 {
   "name": "gh-action-auto-merge-dependency-updates",
-  "version": "0.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "A GitHub action that will automatically merge a PR that only contains dependency updates, based on some rules.",
   "scripts": {

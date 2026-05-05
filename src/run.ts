@@ -72,6 +72,8 @@ export async function run(): Promise<Result> {
     });
 
   const approve = core.getInput('approve') === 'true';
+  const allowPrereleaseUpdates =
+    core.getInput('allow-prerelease-updates') === 'true';
 
   const packageBlockList = (core.getInput('package-block-list') || '')
     .split(',')
@@ -102,8 +104,20 @@ export async function run(): Promise<Result> {
     .filter(Boolean);
   const allowGithubActionsWorkflowUpdates =
     core.getInput('allow-github-actions-workflow-updates') === 'true';
+  const allowedWorkflowFiles = (core.getInput('allowed-workflow-files') || '')
+    .split(',')
+    .map((a) => a.trim())
+    .filter(Boolean);
 
   const pr = payload.pull_request;
+  const prAuthor = pr.user?.login;
+
+  if (!prAuthor || !allowedActors.includes(prAuthor)) {
+    core.error(
+      `PR author not allowed: ${prAuthor ?? 'unknown'}. Allowed: ${allowedActors.join(', ')}`
+    );
+    return Result.ActorNotAllowed;
+  }
 
   const Octokit = GitHub.plugin(throttling as any);
   const octokit = new Octokit(
@@ -223,7 +237,8 @@ export async function run(): Promise<Result> {
   const validVersionChange = (
     oldVersion: string,
     newVersion: string,
-    allowedBumpTypes: string[]
+    allowedBumpTypes: string[],
+    allowPrerelease: boolean
   ): boolean => {
     const oldVersionMatches = semverRegex.exec(oldVersion);
     if (!oldVersionMatches) {
@@ -241,6 +256,13 @@ export async function run(): Promise<Result> {
 
     const oldVersionExact = oldVersion.slice(oldVersionPrefix.length);
     const newVersionExact = newVersion.slice(newVersionPrefix.length);
+
+    if (
+      !allowPrerelease &&
+      (semver.prerelease(oldVersionExact) || semver.prerelease(newVersionExact))
+    ) {
+      return false;
+    }
 
     if (semver.gte(oldVersionExact, newVersionExact)) {
       return false;
@@ -273,13 +295,17 @@ export async function run(): Promise<Result> {
   ];
   const isAllowedWorkflowFile = (filename: string) =>
     /^\.github\/workflows\/[^/]+\.ya?ml$/i.test(filename);
+  const isWorkflowFileAllowed = (filename: string) =>
+    isAllowedWorkflowFile(filename) &&
+    (allowedWorkflowFiles.length === 0 ||
+      allowedWorkflowFiles.includes(filename));
   const forbiddenFiles = comparison.data.files
     .filter(
       (file: { filename: string; status: string }) =>
         (!allowedFiles.includes(file.filename) &&
           !(
             allowGithubActionsWorkflowUpdates &&
-            isAllowedWorkflowFile(file.filename)
+            isWorkflowFileAllowed(file.filename)
           )) ||
         file.status !== 'modified'
     )
@@ -344,7 +370,12 @@ export async function run(): Promise<Result> {
         core.info(`  Skipping: ${dependency} old or new version is not a string`);
         return false;
       }
-      const isValid = validVersionChange(oldVersion, newVersion, allowedBumpTypes);
+      const isValid = validVersionChange(
+        oldVersion,
+        newVersion,
+        allowedBumpTypes,
+        allowPrereleaseUpdates
+      );
       if (!isValid) {
         core.info(`  Skipping: ${dependency} version change is not allowed`);
       }
